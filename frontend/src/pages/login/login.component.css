@@ -1,0 +1,18 @@
+/* Estilo personalizado para el botón de Microsoft */
+.btn-microsoft {
+    background-color: #2f2f2f; /* El gris oscuro oficial de Microsoft */
+    color: #ffffff;
+    border: 1px solid #4a4a4a;
+    border-radius: 0px; /* Microsoft suele usar esquinas completamente rectas */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Tipografía oficial */
+    font-weight: 600;
+    font-size: 15px;
+    transition: background-color 0.2s ease;
+}
+
+/* Efecto Hover para mejorar la experiencia de usuario */
+.btn-microsoft:hover {
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border-color: #2f2f2f;
+}

@@ -1,5 +1,6 @@
 package com.api.security;
 
+import com.api.security.CustomAuthenticationSuccessHandler; 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,23 +19,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final CustomAuthenticationSuccessHandler successHandler;
 
-    // Inyectamos el filtro simplificado
-    public SecurityConfig(JwtFilter jwtFilter) {
+    // Inyectamos el filtro y el nuevo handler de éxito para OAuth2
+    public SecurityConfig(JwtFilter jwtFilter, CustomAuthenticationSuccessHandler successHandler) {
         this.jwtFilter = jwtFilter;
+        this.successHandler = successHandler;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Tu método CORS existente
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            
+            // Mantenemos STATELESS porque tus endpoints de negocio (/api/**) validan por JWT.
+            // Nota: Spring Security manejará una sesión temporal en memoria SOLO durante el handshake de OAuth2.
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Login público
-                .anyRequest().authenticated() // Protege /api/Task y el resto
+                // Endpoints públicos de login local o el inicio/callback de OAuth2
+                .requestMatchers("/api/auth/**", "/login/**", "/oauth2/**").permitAll() 
+                .anyRequest().authenticated()
             )
-            // LÍNEA CRÍTICA: Intercepta las llamadas de Angular con tu filtro antes de bloquearlas
+            
+            // CONFIGURACIÓN OAUTH2 PARA ENTRA ID
+            .oauth2Login(oauth2 -> oauth2
+                // Manejador que se dispara cuando el usuario se loguea con éxito en Microsoft
+                .successHandler(successHandler)
+            )
+            
+            // Filtro para validar los JWT propios de tu app en las peticiones subsiguientes
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -43,7 +58,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(List.of("http://localhost:4200")); // Origen Angular
+        cors.setAllowedOrigins(List.of("http://localhost:4200"));
         cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cors.setAllowedHeaders(List.of("*"));
         cors.setAllowCredentials(true);
