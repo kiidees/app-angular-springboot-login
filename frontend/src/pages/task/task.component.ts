@@ -185,7 +185,7 @@ export class TaskComponent {
     paginator: MatPaginator = new MatPaginator;
 
     paginatorPageSize = 0;
-    paginatorPageSizeOptions = [5, 10, 25];
+    paginatorPageSizeOptions = [5, 10, 25, 50];
     paginatorHidePageSize = false;
     paginatorShowPageSizeOptions = true;
     paginatorShowFirstLastButtons = true;

@@ -35,7 +35,8 @@ services:
     build:
       context: ../backend/api
     ports:
-      - 3000:3000
+      #- 3000:3000
+      - 8081:8081
     # volumes: # exclude node_modules from image - handled via .dockerignore
     #   - ./backend/api/:/app
     #   - /app/node_modules
@@ -49,10 +50,14 @@ services:
     profiles: [all, frontend]
     build:
       context: ../frontend
-    # volumes: # exclude node_modules from image - handled via .dockerignore
-    # - ./frontend/:/app
-    # - /app/node_modules
+    # --- AQUÍ ESTÁ EL CAMBIO ---
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+    # ---------------------------
     ports:
       - 4200:4200
     environment:
       - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true # Crucial para que detecte cambios en algunos sistemas
+      - WATCHPACK_POLLING=true

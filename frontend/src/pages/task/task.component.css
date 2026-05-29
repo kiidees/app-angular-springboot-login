@@ -1,16 +1,35 @@
+/* ***********************
 .crud-table-container {
   height: 680px;
-  max-width: 100%;
-  overflow: auto;
+  width: 100%;       /* Cambiado de max-width a width 
+  display: block;     /* Fuerza el comportamiento de bloque 
+  overflow: auto;     /* Activa el scroll horizontal solo para la tabla 
+}
+
+*********************** */
+
+.crud-table-container {
+  height: 680px;
+  width: 100%;          /* Ocupa todo el ancho del bloque negro */
+  display: block;       /* Convierte el contenedor en un bloque robusto */
+  overflow-x: auto !important; /* ¡CLAVE! Esto forzará la barra de scroll horizontal AQUÍ adentro */
+  overflow-y: auto;     /* Scroll vertical si hay muchas filas */
 }
 
 /* table styling BEGIN */
 
 .mat-mdc-header-row { background-color: whitesmoke; }
-
+/* **********************
 .x-mat-table {
     --mat-table-header-headline-weight: 550;
 }
+********************* */
+
+.x-mat-table {
+    width: 100%;
+    min-width: 600px;  
+}
+   
 
 .x-mat-form-field {
     --mat-form-field-container-height: 48px;

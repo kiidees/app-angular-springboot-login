@@ -16,7 +16,7 @@ export interface Response<T> {
     result: T;
     status: string;
     message: string;
-};
+}
 
 type ResponseEntityModel = Response<TaskModel[]>;
 type ResponseApiModel = Response<TaskApiModel>;
@@ -25,96 +25,62 @@ let mvMapper = TaskViewModel;
 @Injectable({
     providedIn: 'root'
 })
-
 export class TaskApiService {
 
     static createApiModel = (): TaskApiModel => {
         return {
-            version: {
-                shape: '',
-                major: 0,
-                minor: 0,
-                revision: 0
-            },
+            version: { shape: '', major: 0, minor: 0, revision: 0 },
             entities: [],
             views: [],
             entity_fields: [],
-            references: {
-                assignee_enum: [],
-                status_enum: [],
-            },
-            _links: {
-                "self": "",
-                "next": "",
-                "prev": "",
-                "first": "",
-                "last": ""
-            },
-            _paging: {
-                entity_count: 0,
-                page_size: 0,
-                prev_cursor: 0,
-                next_cursor: 0,
-                first_cursor: 0,
-                last_cursor: 0
-            }
+            references: { assignee_enum: [], status_enum: [] },
+            _links: { "self": "", "next": "", "prev": "", "first": "", "last": "" },
+            _paging: { entity_count: 0, page_size: 0, prev_cursor: 0, next_cursor: 0, first_cursor: 0, last_cursor: 0 }
         };
     }
-    public apiModel = TaskApiService.createApiModel()
+    public apiModel = TaskApiService.createApiModel();
 
-    constructor(private http: HttpClient) {
-    }
+    constructor(private http: HttpClient) {}
 
-    protected apiUrlBase = 'http://' + window.location.hostname + ':3000'
+    protected apiUrlBase = 'http://' + window.location.hostname + ':8081';
     protected apiStem = '/api/Task';
     protected apiUrl = (query: string = '') => this.apiUrlBase + this.apiStem + query;
     protected linkUrl = (link: string) => this.apiUrlBase + link;
 
-    private httpOptions = {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+    // CORRECCIÓN 1: Método dinámico que busca el token en el LocalStorage en tiempo real antes de cada petición
+    private getHttpOptions() {
+        const token = localStorage.getItem('app_token');
+        let headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+        if (token) {
+            headers = headers.set('Authorization', `Bearer ${token}`);
+        }
+        return { headers };
     }
 
-    private log(message: string) {// console log for now
+    private log(message: string) {
         console.log(message);
     }
 
     private handleError<T>(operation = 'operation', result?: T) {
         return (error: any): Observable<T> => {
-
-            // TODO: send the error to remote logging infrastructure
-            console.error(error); // log to console instead
-
-            // TODO: better job of transforming error for user consumption
+            console.error(error); 
             this.log(`${operation} failed: ${error.message}`);
-
-            // Let the app keep running by returning an empty result.
             return of(result as T);
         };
     }
 
     private modelError(message = "", result = []) {
-        return {
-            result: result,
-            status: "error - network",
-            message: message
-        };
+        return { result: result, status: "error - network", message: message };
     }
 
     private apiModelError(message = "", result = TaskApiService.createApiModel()) {
-        return {
-            result: result,
-            status: "error - network",
-            message: message
-        };
+        return { result: result, status: "error - network", message: message };
     }
-
-    /*
-        Back-End-For-Front-End With Model View Mapping
-    */
 
     readApiModel(): Observable<ResponseApiModel> {
         let fn = 'TaskApiService.readApiModel()';
-        return this.http.get<ResponseApiModel>(this.apiUrl())
+        // CORRECCIÓN 2: Se añade getHttpOptions() al método GET inicial
+        return this.http.get<ResponseApiModel>(this.apiUrl(), this.getHttpOptions())
             .pipe(
                 tap(response => {
                     this.log(`${fn} => ${response.status}`);
@@ -140,13 +106,13 @@ export class TaskApiService {
     createEntity(view: TaskView): Observable<ResponseEntityModel> {
         let fn = 'TaskApiService.createEntity()';
         let model = mvMapper.mapViewToModel(this.apiModel, view);
-        return this.http.post<ResponseEntityModel>(this.apiUrl(), model, this.httpOptions)
+        // CORRECCIÓN 3: Se invoca getHttpOptions() dinámicamente
+        return this.http.post<ResponseEntityModel>(this.apiUrl(), model, this.getHttpOptions())
             .pipe(
                 tap((response: ResponseEntityModel) => {
                     this.log(`${fn} => ${response.status}`);
                     if (response.status === 'success') {
                         this.apiModel.views.push(mvMapper.mapModelToView(this.apiModel, response.result[0]));
-                        // TODO: get count from API
                         ++this.apiModel._paging.entity_count;
                     }
                 }),
@@ -157,7 +123,8 @@ export class TaskApiService {
     updateEntity(view: TaskView): Observable<ResponseEntityModel> {
         let fn = `TaskApiService.updateEntity(${view.task_id})`;
         let model = mvMapper.mapViewToModel(this.apiModel, view);
-        return this.http.put<ResponseEntityModel>(this.apiUrl(), model, this.httpOptions)
+        // CORRECCIÓN 4: Se invoca getHttpOptions() dinámicamente
+        return this.http.put<ResponseEntityModel>(this.apiUrl(), model, this.getHttpOptions())
             .pipe(
                 tap(response => {
                     this.log(`${fn} => ${response.status}`);
@@ -175,14 +142,14 @@ export class TaskApiService {
     deleteEntity(view: TaskView): Observable<ResponseEntityModel> {
         let fn = `TaskApiService.deleteEntity(${view.task_id})`;
         const url = `${this.apiUrl()}/${view.task_id}`;
-        return this.http.delete<ResponseEntityModel>(url, this.httpOptions).pipe(
+        // CORRECCIÓN 5: Se invoca getHttpOptions() dinámicamente
+        return this.http.delete<ResponseEntityModel>(url, this.getHttpOptions()).pipe(
             tap(response => {
                 this.log(`${fn} => ${response.status}`);
                 if (response.status === 'success') {
                     const idx = this.apiModel.views.findIndex((o) => o.task_id === view.task_id) ?? -1;
                     if (idx !== -1) {
                         this.apiModel.views.splice(idx, 1);
-                        // TODO: get count from API
                         --this.apiModel._paging.entity_count;
                     }
                 }
@@ -191,12 +158,9 @@ export class TaskApiService {
         );
     }
 
-    /*
-        Paging
-    */
-
     readPage(fn: string, url: string) {
-        return this.http.get<ResponseApiModel>(url)
+        // CORRECCIÓN 6: Se añade getHttpOptions() a la paginación GET
+        return this.http.get<ResponseApiModel>(url, this.getHttpOptions())
             .pipe(
                 tap(response => {
                     this.log(`${fn} => ${response.status}`);
@@ -205,7 +169,7 @@ export class TaskApiService {
                         let api_shape = response.result.version.shape.toLowerCase();
                         if (api_shape !== expected) throw (`api shape mismatch: expected: ${expected}, got: ${api_shape}`);
                         if (response.result.entities) {
-                            this.apiModel.entities = response.result.entities
+                            this.apiModel.entities = response.result.entities;
                             let inflated_entities: TaskView[] = [];
                             this.apiModel.entities.forEach((e) => {
                                 inflated_entities.push(mvMapper.mapModelToView(this.apiModel, e));
@@ -219,6 +183,7 @@ export class TaskApiService {
                 catchError(this.handleError<ResponseApiModel>(fn, this.apiModelError()))
             );
     }
+
 
     nextPage(): Observable<ResponseApiModel> {
         return this.readPage('TaskApiService.nextPage()', this.linkUrl(this.apiModel._links.next));

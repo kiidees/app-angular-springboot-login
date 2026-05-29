@@ -1,11 +1,15 @@
-FROM alpine:3.23
+# Imagen oficial y perfectamente compatible con Spring Boot 3
+FROM eclipse-temurin:21-jdk
 
 WORKDIR /usr/src/app
 
+# Copiamos todos los archivos del backend
 COPY . /usr/src/app
 
-RUN apk update && apk add openjdk25
+# Otorgamos permisos de ejecución al empaquetador de Maven
+RUN chmod +x ./mvnw
 
-RUN ./mvnw clean install -DskipTests
+# Compilación limpia inyectando la bandera para evitar el bug "this.hashes"
+RUN ./mvnw clean install -DskipTests -e -Dmaven.compiler.forceJavacCompilerUse=true
 
-CMD ["./mvnw", "spring-boot:run"]
+CMD ["./mvnw", "spring-boot:run", "-Dmaven.compiler.forceJavacCompilerUse=true"]

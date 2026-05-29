@@ -1,5 +1,5 @@
-<mat-sidenav-container autosize>
-    <mat-sidenav class="sidenav" [mode]="isMobile ? 'over' : 'side'" [opened]="isMobile ? 'false' : 'true'"
+<mat-sidenav-container>
+    <mat-sidenav class="sidenav" [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile"
         [@.disabled]="animationDisabled()" [@triggerSideNavOpen]="isMenuOpen ? 'close' : 'open'">
 
         <mat-nav-list>
@@ -33,7 +33,7 @@
 
     </mat-sidenav>
     <mat-sidenav-content [@.disabled]="animationDisabled()" [@triggerToolbarOpen]="isMenuOpen ? 'close' : 'open'">
-        <mat-toolbar color="primary" [class.mat-elevation-z2]="isMenuOpen" [class.mat-elevation-z4]="!isMenuOpen">
+        <mat-toolbar color="primary">
             <button class="expand-icon" matIconButton aria-label="Menu icon" (click)="toggleMenu()">
                 <mat-icon  >
                     @if (isMenuOpen) { menu } @else { menu_open }
