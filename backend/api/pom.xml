@@ -104,6 +104,26 @@
             <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.ubiqsecurity</groupId>
+            <artifactId>ubiqsecurity</artifactId>
+            <version>2.3.999</version>
+            <scope>system</scope>
+            <systemPath>/usr/src/app/ubiqsecurity-2.3.999.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.78</version> 
+        </dependency>
+
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.78</version>
+        </dependency>
+
     </dependencies>
 
     <build>

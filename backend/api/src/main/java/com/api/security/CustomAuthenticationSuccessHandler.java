@@ -49,6 +49,8 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("token", miJwtToken)
                 .build().toUriString();
 
+        System.out.println("Token generado: " + miJwtToken);
+
         // 5. Limpiamos los atributos temporales de autenticación de la sesión de Spring
         clearAuthenticationAttributes(request);
 
