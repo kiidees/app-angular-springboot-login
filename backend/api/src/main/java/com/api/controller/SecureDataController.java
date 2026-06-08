@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
-
 @RequestMapping("/api/secure") 
 public class SecureDataController {
 
@@ -17,23 +16,18 @@ public class SecureDataController {
         this.encryptionService = encryptionService;
     }
 
-    
     @PostMapping("/tociphertext") 
-    public String procesarDatoSensible(@RequestParam String dato) {
-        // Cifrado estructurado
-        String datoCifrado = encryptionService.encryptData(dato);
+    public String procesarDatoSensible(@RequestParam String dato, @RequestParam String jwt) {
+        String datoCifrado = encryptionService.encryptData(dato, jwt);
         System.out.println("Texto estructurado cifrado por Ubiq: " + datoCifrado);
-
-        // Descifrado
-        String datosOriginales = encryptionService.decryptData(datoCifrado);
         
         return "Flujo completado. Texto cifrado: " + datoCifrado;
     }
 
     @PostMapping("/toplaintext") 
-    public String liberarDatoSensible(@RequestParam String dato) {
-        
-        String datosOriginales = encryptionService.decryptData(dato);
+    public String liberarDatoSensible(@RequestParam String dato, @RequestParam String jwt) {
+        String datosOriginales = encryptionService.decryptData(dato, jwt);
+        System.out.println("Texto estructurado descifrado por Ubiq: " + datosOriginales);
         
         return "Flujo completado. Texto descifrado: " + datosOriginales;
     }
